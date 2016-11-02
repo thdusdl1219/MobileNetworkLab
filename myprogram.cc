@@ -11,7 +11,10 @@ NS_LOG_COMPONENT_DEFINE("labExample");
 using namespace ns3;
 
 void ReceivePacket(Ptr<Socket> socket) {
-  NS_LOG_UNCOND("Received one packet!");
+  char buf[100];
+  static int count = 1;
+  sprintf(buf, "Received %d packet(s)!", count++);
+  NS_LOG_UNCOND(buf);
 }
 
 static void GenerateTraffic(Ptr<Socket> socket, uint32_t pktSize, uint32_t pktCount, Time pktInterval) {
