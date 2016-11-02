@@ -3,6 +3,8 @@
 #include "ns3/mobility-module.h"
 #include "ns3/wifi-module.h"
 #include "ns3/internet-module.h"
+#include <cstdio>
+#include <cstring>
 
 NS_LOG_COMPONENT_DEFINE("labExample");
 
@@ -26,6 +28,7 @@ int main(int argc, char *argv[]) {
 
   int nodeNumber = 2;
   uint32_t packetNumber = 40;
+  char buf[100];
 
   CommandLine cmd;
   cmd.AddValue("nodeNum", "Number of nodes", nodeNumber);
@@ -37,6 +40,10 @@ int main(int argc, char *argv[]) {
 
   NodeContainer c;
   c.Create(nodeNumber);
+
+  sprintf(buf, "Create %d nodes", nodeNumber);
+  NS_LOG_UNCOND(buf);
+  memset(buf, 0, 100);
 
   WifiHelper wifi;
   wifi.SetStandard(WIFI_PHY_STANDARD_80211b);
@@ -56,6 +63,10 @@ int main(int argc, char *argv[]) {
   
   wifiMac.SetType("ns3::AdhocWifiMac");
   NetDeviceContainer devices = wifi.Install(wifiPhy, wifiMac, c);
+  
+  sprintf(buf, "Make Connections");
+  NS_LOG_UNCOND(buf);
+  memset(buf, 0, 100);
 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
@@ -72,16 +83,28 @@ int main(int argc, char *argv[]) {
   ipv4.SetBase("10.1.1.0", "255.255.255.0");
   Ipv4InterfaceContainer i = ipv4.Assign(devices);
 
+  sprintf(buf, "Set Ipv4 Address");
+  NS_LOG_UNCOND(buf);
+  memset(buf, 0, 100);
+
   TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
   Ptr<Socket> recvSink = Socket::CreateSocket(c.Get(0), tid);
   InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), 80);
   recvSink->Bind(local);
   recvSink->SetRecvCallback(MakeCallback(&ReceivePacket));
 
+  sprintf(buf, "Make recvSink");
+  NS_LOG_UNCOND(buf);
+  memset(buf, 0, 100);
+
   Ptr<Socket> source = Socket::CreateSocket(c.Get(1), tid);
   InetSocketAddress remote = InetSocketAddress(Ipv4Address("255.255.255.255"), 80);
   source->SetAllowBroadcast(true);
   source->Connect(remote);
+
+  sprintf(buf, "Make Source");
+  NS_LOG_UNCOND(buf);
+  memset(buf, 0, 100);
 
   wifiPhy.EnablePcap("labExample", devices);
 
