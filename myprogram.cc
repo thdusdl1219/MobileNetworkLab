@@ -3,6 +3,7 @@
 #include "ns3/mobility-module.h"
 #include "ns3/wifi-module.h"
 #include "ns3/internet-module.h"
+#include "ns3/netanim-module.h"
 #include <cstdio>
 #include <cstring>
 
@@ -29,7 +30,7 @@ static void GenerateTraffic(Ptr<Socket> socket, uint32_t pktSize, uint32_t pktCo
 int main(int argc, char *argv[]) {
   std::string phyMode("DsssRate1Mbps");
 
-  int nodeNumber = 2;
+  int nodeNumber = 4;
   uint32_t packetNumber = 40;
   char buf[100];
 
@@ -74,7 +75,9 @@ int main(int argc, char *argv[]) {
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
   positionAlloc->Add(Vector(0.0, 0.0, 0.0));
-  positionAlloc->Add(Vector(5.0, 0.0, 0.0));
+  positionAlloc->Add(Vector(5.0, 5.0, 0.0));
+  positionAlloc->Add(Vector(10.0, 10.0, 0.0));
+  positionAlloc->Add(Vector(15.0, 15.0, 0.0));
   mobility.SetPositionAllocator(positionAlloc);
   mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
   mobility.Install(c);
@@ -91,19 +94,33 @@ int main(int argc, char *argv[]) {
   memset(buf, 0, 100);
 
   TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
-  Ptr<Socket> recvSink = Socket::CreateSocket(c.Get(0), tid);
-  InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), 80);
-  recvSink->Bind(local);
-  recvSink->SetRecvCallback(MakeCallback(&ReceivePacket));
+  //Ptr<Socket> recvSink = Socket::CreateSocket(c.Get(0), tid);
+  //InetSocketAddress local = InetSocketAddress(Ipv4Address::GetAny(), 80);
+  //recvSink->Bind(InetSocketAddress(80));
+  //recvSink->SetRecvCallback(MakeCallback(&ReceivePacket));
 
-  sprintf(buf, "Make recvSink");
+  Ptr<Socket> recvSink2 = Socket::CreateSocket(c.Get(2), tid);
+  InetSocketAddress local2 = InetSocketAddress(i.GetAddress(2), 80);
+  recvSink2->Bind(local2);
+  recvSink2->SetRecvCallback(MakeCallback(&ReceivePacket));
+
+  sprintf(buf, "Make recvSinks");
   NS_LOG_UNCOND(buf);
   memset(buf, 0, 100);
 
   Ptr<Socket> source = Socket::CreateSocket(c.Get(1), tid);
-  InetSocketAddress remote = InetSocketAddress(Ipv4Address("255.255.255.255"), 80);
-  source->SetAllowBroadcast(true);
+  InetSocketAddress remote = InetSocketAddress(i.GetAddress(0), 80);
+//  source->SetAllowBroadcast(true);
   source->Connect(remote);
+
+  Ptr<Socket> source2 = Socket::CreateSocket(c.Get(3), tid);
+  InetSocketAddress remote2 = InetSocketAddress(i.GetAddress(2), 80);
+//  source2->SetAllowBroadcast(true);
+  source2->Connect(remote2);
+
+  sprintf(buf, "%x", i.GetAddress(2).Get());
+  NS_LOG_UNCOND(buf);
+  memset(buf, 0, 100);
 
   sprintf(buf, "Make Source");
   NS_LOG_UNCOND(buf);
@@ -114,6 +131,7 @@ int main(int argc, char *argv[]) {
   Simulator::ScheduleWithContext(source->GetNode()->GetId(), Seconds(1.0), &GenerateTraffic, 
                                  source, 1000, packetNumber, interPacketInterval);
 
+  AnimationInterface anim("wireless-animation.xml");
   Simulator::Run ();
   Simulator::Destroy ();
 
