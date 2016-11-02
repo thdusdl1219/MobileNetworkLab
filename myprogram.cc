@@ -29,6 +29,9 @@ int main(int argc, char *argv[]) {
 
   CommandLine cmd;
   cmd.AddValue("nodeNum", "Number of nodes", nodeNumber);
+  cmd.AddValue("packetNum", "Number of packets", packetNumber);
+
+  cmd.Parse(argc, argv);
 
   Time interPacketInterval = Seconds(1.0);
 
